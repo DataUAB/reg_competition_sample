@@ -1,0 +1,242 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# For this competition we will try to predict the estimated transaction value in USD for bitcoins. This dataset contains bitcoin data collected since April 28, 2013. This small guide will show you what features are present in the data and what each of these represents. We also include a small example code that you can use to upload our submission to [Codalab](https://competitions.codalab.org/competitions/20122). For a guide on how to upload a submission check the Codalab Submission Guide.pdf in Caronte&nbsp;&nbsp;"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Here is a list of the features present in our data and what they represent\n",
+    "\n",
+    "* **btc_market_price** : Average USD market price across major bitcoin exchanges.\n",
+    "\n",
+    "* **btc_total_bitcoins** : The total number of bitcoins that have already been mined.\n",
+    "\n",
+    "* **btc_market_cap** : The total USD value of bitcoin supply in circulation.\n",
+    "\n",
+    "* **btc_trade_volume** : The total USD value of trading volume on major bitcoin exchanges.\n",
+    "\n",
+    "* **btc_blocks_size** : The total size of all block headers and transactions.\n",
+    "\n",
+    "* **btc_avg_block_size** : The average block size in MB.\n",
+    "\n",
+    "* **btc_n_orphaned_blocks** : The total number of blocks mined but ultimately not attached to the main Bitcoin blockchain.\n",
+    "\n",
+    "* **btc_n_transactions_per_block** : The average number of transactions per block.\n",
+    "\n",
+    "* **btc_median_confirmation_time** : The median time for a transaction to be accepted into a mined block.\n",
+    "\n",
+    "* **btc_hash_rate** : The estimated number of tera hashes per second the Bitcoin network is performing.\n",
+    "\n",
+    "* **btc_difficulty** : A relative measure of how difficult it is to find a new block.\n",
+    "\n",
+    "* **btc_miners_revenue** : Total value of coinbase block rewards and transaction fees paid to miners.\n",
+    "\n",
+    "* **btc_transaction_fees** : The total value of all transaction fees paid to miners.\n",
+    "\n",
+    "* **btc_cost_per_transaction_percent** : miners revenue as percentage of the transaction volume.\n",
+    "\n",
+    "* **btc_cost_per_transaction** : miners revenue divided by the number of transactions.\n",
+    "\n",
+    "* **btc_n_unique_addresses** : The total number of unique addresses used on the Bitcoin blockchain.\n",
+    "\n",
+    "* **btc_n_transactions** : The number of daily confirmed Bitcoin transactions.\n",
+    "\n",
+    "* **btc_n_transactions_total** : Total number of transactions.\n",
+    "\n",
+    "* **btc_n_transactions_excluding_popular** : The total number of Bitcoin transactions, excluding the 100 most popular addresses.\n",
+    "\n",
+    "* **btc_n_transactions_excluding_chains_longer_than_100** : The total number of Bitcoin transactions per day excluding long transaction chains.\n",
+    "\n",
+    "* **btc_output_volume** : The total value of all transaction outputs per day.\n",
+    "\n",
+    "* **btc_estimated_transaction_volume** : The total estimated value of transactions on the Bitcoin blockchain.&nbsp;&nbsp;\n",
+    "\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# What we will predict: \n",
+    "### btc_estimated_transaction_volume_usd: Is the last column of our data and represents the bitcoin estimated transaction value in USD value. This will be our target value&nbsp;&nbsp;\n",
+    "\n",
+    "\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### This is a small example of how you should upload a submission to our competition. Good Luck!!  \n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import pickle\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from sklearn import linear_model\n",
+    "from sklearn.metrics import mean_squared_error, r2_score\n",
+    "import matplotlib.pyplot as plt"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Load data and convert it to numpy array\n",
+    "data = pd.read_csv(\"data/bitcoin_dataset.csv\") # the entire training data\n",
+    "data = data.iloc[:, :].values \n",
+    "test_data = pd.read_csv(\"data/test.csv\") # the data we want to predict\n",
+    "test_data = test_data.iloc[:,:].values"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Split our data into training and validation set\n",
+    "x_train, x_val, y_train, y_val = train_test_split(\n",
+    "        data[:, : -1], data[:, -1], test_size=0.33, shuffle=False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False)"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Build our regressor and train it on our data\n",
+    "regressor = linear_model.LinearRegression()\n",
+    "regressor.fit(x_train, y_train)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Mean Squared Error: 383720275339242624.000\n",
+      "Variance score: 0.40\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Test our model on the validation data to see how well it did\n",
+    "preds = regressor.predict(x_val)\n",
+    "\n",
+    "# Mean squared Error (the smaller the better)\n",
+    "print(\"Mean Squared Error: {:.3f}\".format(mean_squared_error(y_val, preds)))\n",
+    "\n",
+    "# Explained variance score: 1 is perfect prediction \n",
+    "# This will be the metric used in the competition\n",
+    "print(\"Variance score: {:.2f}\".format(r2_score(y_val, preds)))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Residual plots are a good way to visualize the performance of your model. If your model is performing well your data should be randomly scattered around line 0. If you get some structure in your data, your model is not performing well and you should go back and check what you have done"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/png": "iVBORw0KGgoAAAANSUhEUgAAAYYAAAEVCAYAAADkckIIAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAADl0RVh0U29mdHdhcmUAbWF0cGxvdGxpYiB2ZXJzaW9uIDIuMi4zLCBodHRwOi8vbWF0cGxvdGxpYi5vcmcvIxREBQAAIABJREFUeJzt3XucHXV9//HXZzebmAAusokXLrur3JQaoRJR2/5qfgYrohiJ2tIuCJb+Ukj5VX4/rbbGcivbWqo1WkVIKxrDile8Ad4IUi8/0AZLiCgChSQQbsmGJISkQLKf3x8zZ5lzduZc55yZOft+5rGPnMucme/cvp+Z723M3RERESnpyToBIiKSLwoMIiJSRoFBRETKKDCIiEgZBQYRESmjwCAiImUyDwxmdqeZLUz4bqGZPZjScm42sz9r8rcbzOzENNLRLDO7wsz+Nss0VFNtP7YybRPpmGdmd5nZ7PB94n43s2EzczObkcJyv2Zmb2p1Pg0sry3HZLg9jghfVz3motM2sZwRM/t+s+msMe9ZZvYrM3tRO+bfCjP7qJmd2+BvOp7/1H1CmNkG4AXAPmAX8F3gPHff1UoC3P23Wvl9noSZ3dXufmja83b3c9KeJwSZI3A/0Ofue5udTyP7sc37/K+Bz7n7njYuI84/Ap8GvtPh5bZNWsdc3DHm7mPAWBrzj7EU+JG7P9ym+bfiI8DPzewz7v502jM3MweOdPd7W5lPo3cMp7j7/sBxwG8Df9PKwqUY0rii7gQzmwWcCVzd6WW7+8+B55rZgk4vW6Y4B1jdzA/bfayHweou4K3tXE6rmipKcvdHgO8RBAhg8vbtI2a2ycweDW9DS7fzc83sOjPbbmbbzOzHZtYTfjd5m2Rms83sc2b2uJn9CnhVdLmVt67htJeGr58XLmNL+PvrzKyuK3czu8jMvmpmXzKzJ8zsF2Z2bMK0s8xshZk9FP6tCD/bj+Bq8WAz2xX+HRzz+7KiDTM7y8x+Er42M/uYmT1mZjvNbL2ZvTxmXRea2YNm9t5w2ofN7N2ReQ6Y2bfDefyHmV1aWkaMH4X/bw/T/NowTT8N0zIOXGRmh5vZTWY2bmZbzWzMzA6MLDO6Hy8ysy+b2efD7XlnNMNscNpXmtl/ht99JdxHlyasy6uB7e5eWfx4uJn9PNwe3zSzg+J+XHnLHqbt6sj715jZ/wuP43U2tTjsZuDNCfOuenyGx8Xfhdv9CTP7vpnNjXx/hpltDLf/8oT1x8xebWaPmFlv5LNTzeyO8PUJZnZLuA4Pm9knzWxmwrwmj7nw/V+Fv3nIzP60Yto3h/tpp5k9YGYXRb5OOsZ+Evn974TH6o7w/9+pd9tUpGMQeAnws8hnVc8HC/KVvzCze4B7ws9eamY/sCC/+o2Z/WFk+mp5XdVzM3QzCcdJOI/EfV1t/5lZaTuvC7fzH9U67pI0FRjCGb8JiN6ufBg4iiBYHAEcAlwQfvde4EFgHkFx1AeBuLE4LgQOD//eSHD1V68e4LPAEDAI7AE+2cDvFwNfAQ4CvgB8w8z6YqZbDryGYD2PBU4APuTuTxJsk4fcff/w76EGlg/wB8DvE2zHfuAPgfGEaV8YTnMIcDbwKTN7Xvjdp4Anw2nOpPp2/P3w/wPDNN8Svn81cB/B/hoFDPgH4GDgZcBhwEVV5vtW4IvAgcC3qL4vYqcND/ivA58j2C/XAKdWmc984Dcxn78L+FPgRcBe4BNV5hHLzA4BrgcuDdPyPuBrZjYvMtmvCY6JOPUcn38CvBt4PjAzXAZmdgxBMdUZBNt/AIg9ud39ZwT7/vUV8/1C+Hof8H+AucBrgUXAssQVD5nZSWF63gAcCVSWeT9JsJ0PJMj0zjWzt4XfJR1jpXkfRLBtPxGu2z8D15vZQMU6TNk2MeYD91UUi9ZzPryN4Jg/xoKLvB8QbLPnA6cBl4f7AarndVD93IQqx0kd+zpx/7l7aTsfG27nL9Fsvujudf0BGwjqFp4gyNTXEOxoCDKNJ4HDI9O/Frg/fH0J8E3giMj3VwGPAU8DJ4af3QecFJlmKUFAGQqX5wRXAoeG338OuDQhvccBj0fe3wz8WcK0FwG3Rt73AA8D/yOy7qU0/hdwcmTaNwIbwtcLgQdrbMeydABnAT8JX78euJsg8PRU/G5yXcPl7AFmRL5/LPxdL/AMcHTku0tLy4hJz3C4XWdUpGlTjfV4G/CfFcdHaRtdBNwY+e4YYE+j0xJkKJsBi3z/kyr7fDnwxZjt/eGK+T8dbqeydY+mK5K2q8PXHwBWV8z7e8CZkff/C7ipzvMp7vj8UOT9MuC74esLousF7EfkvImZ96XAVeHrAwjOzaGEac8Hvh5574TnacUxd1XFdjwqOm3MfFcAH6txjJWO+zOAn1f8/hbgrFrbJma5I5SfyzXPhzBtr4+8/yPgxxXzvZLgwrVWXreQhHMz8v4NBMErLv2N7uvE/VfPcZf01+gdw9vc/YBw5V9KELUguBOYA9wW3uJsJ6icLl1N/RPB3cX3zew+M/trgoPupIr5Hww8EHm/Mfz/I8Dnw9f/QnDlWsbM5pjZleEt2E6C29cDo7fUNUwu190nCALSlKKg8LONkfcbE6ZrmLvfRBDNPwU8ZmYrzey5CZOPe/lV0W5gf4JtPoPy7Rh9Xa+y35jZC8zsi2a2Ody+V/Ps/o/zSEXanmPJ5bdJ0x4MbPbwiI5LV4XHCTLCSpXHVB/V0x5nCHhn6fgOj/HfI7gLKTkA2B734zqPz8rtsH/4uuy88ODuNOlOEoIr3SUW1LksAX7h7hvDdBwVFic8Eqbj76lvWySdm6X1e7WZ/TAssthBUM5f7zauPKdK8z8k8j5p21SqPAbqPR+inw0Br67Y1yMEdwK18jpIPjdLEo8TauzrRvdfs/lis3UM/06QsX8k/GgrQZT8LXc/MPzr96CiGnd/wt3f6+4vISg2+L8EJ+e2illvAVaZ2W1m9mOCYhoIrvJuItjAdxAU+0Cwo0reCxwNvNrdn8uzt69W52odVnphQf3HoUBcUdBDBAdOyWBkunqGqn2S4MAqia4D7v4Jdz+eYJ2PAv6qjnlGbSEoLonefh6WMC0kp7ny878PP5sfbt/TqX/bNuth4BAziy6n2rrcQbDNKkV/M0hwBbk1Zrpq++YBgjuGAyN/+7n7hyPTvAxYl5C2Vo7Phyk/PucQFDHEcvdfEWSsb6K8GAmCYoq7CFquPJegWLfhNBBsx6gvEBQDHubu/cAVkfnWOi8qz6nS/DfXka5KdwAvjlyE1Hs+VF58/HvFvt7f3c+lRl5Xp2rHSa193ej+a+q4a6UfwwrgDWZ2bHiF/a/Ax8zs+RCUyZrZG8PXbzGzI8ITfAdBOdlEzDxLn59I0PzvA+Hn6wiufG4nuL0/wMzeCbwu8tsDCHbY9rDM8sIG1+d4M1sSHlDnA08Bt8ZMdw3wIQvay88luPUrVVA+CgyYWX+V5dxOcDU3x4KK9LNLX5jZq8Irrz6CTOq/id9Oidx9H3AtQYXxHDN7KUHZb5It4TJeUmPWBxAUJe4Iy9sbDVjNuIXgmDjPzGaY2WKevViI83OCq6FDKj4/3cyOCU+yS4Cvhtup0u3AaWbWZ0EF+Dsi310NnGJmbzSzXjN7jgUVjdEM53UkN1dt5fj8KvAWM/u9sN7lEmqfu18A3kOQEXylIh07gV3hsVFvm/ovA2dFtmNl+g8Atrn7f5vZCQQBqaTWMXYDcJSZ/Um4n/+I4MLoujrTNsmDhgf3Eh4nTZwPhMs9yoJK4L7w71Vm9rJaeV2dqh0ntfZ1rf33KOXbuanjrunA4O5bCIp3SpUuHyDYIbeGtyw3EkQqCCqrbiTIWG4BLnf3H0bnZ2b7E1R0HkEQlb9KkDlCUNH0OoLI+TqC6P524BuRWawAZoe/vZXg9q4R3yQoW3ycoMxzibs/EzPdpcBagiuT9cAvws9w97sIAsd94W1mXBHTxwjKDB8FVlHelvu5BAfd4wRXfOMExXCNOo+g8usRgmZ71xAEuincfTdB5fJPwzS/JmGeFwOvJAjs1xOcbG3lQTvvJQTBczvBXcp1JK/L0wR3sqdXfLU6/PwR4DnAXyYs8m8JGj48TrC+k1fa7v4AwZ3qBwkyugcIgmOpdd2rgF0eNFuN0/Tx6e53An8RpufhMH21On5eQ3Cu3OTu0buj9xFk2k8QHGtfqjMN3wnX4SaC8/ymikmWAZeY2RMEecKXI7+teoy5+zjwFoKr23Hg/cBbKtLdiCsJzuGSus+HMD1PEDQEOY3gbuYRggvVWeEk1fK6qizodHcM5XlXdNm19nWt/XcRQanLdgtaUjV13Fl58W1nWdDx5Tp3f3lYlv4bd6/aWzEMIHd5ip3ILGhad4S7V2YoXcHM/hF4obs30sorl8zsZ8AV7v7ZhO/nAT8Gfts72MnNzL4GfMbdb+jUMiVeWLfyn8Aij+nkluX5YGYfBf7L3S/v9LIbkZuOS+6+08zuN7N3uvtXwmKnV7j7urDIZlt4G/c3BC0kJEF4izmT4I7mVQRX3E0NB5I1M3sdQRPUrQQVgK+gylVPeCf70s6krmy5b+/0MiWeuz9FcFUO5Ot8cPf3ZrHcRmU2VpKZXUNQrHS0BR1CziY48c82s3XAnTxbybwQ+I2Z3c2z7eol2QEERT1PEtxqfpSgqKyIjiaoY9pOUNTwjrirQJEquul86IhMi5JERCR/Mh9dVURE8iWTOoa5c+f68PBwFosWESms2267bau7z6s9ZWsyCQzDw8OsXbs2i0WLiBSWmVX2EG8LFSWJiEgZBQYRESmjwCAiImUUGEREpIwCg4iIlFFgEJFMjK0fY3jFMD0X9zC8Ypix9WO1fyQdkZuxkkRk+hhbP8bSby9l9zO7Adi4YyNLv70UgJH5I1kmTdAdg4hkYPma5ZNBoWT3M7tZvmZ5RimSKAUGEem4TTs2NfS5dJYCg4h03GB/5ZNBq38unaXAICKTOlUhPLpolDl9c8o+m9M3h9FFGlE/DxQYRAR4tkJ4446NOD5ZIdyO4DAyf4SVp6xkqH8IwxjqH2LlKStV8ZwTmTyPYcGCBa5B9ETyZXjFMBt3TB2jbah/iA3nb+h8gmQKM7vN3Re0ezm6YxARQBXC8iwFBhEBsq0QznNntzynrV0UGES6XL0ZW1YVwp2s2+imtLWTAoNIF2skY8uqQjjPnd3ynLZ2UuWzSBcrQoVyz8U9OFPzIcOYuHAigxQ9K29pU+WziLSsCBXKee7slue0tZMCg0gXK0LGlufObnlOWzspMIh0sSJkbHnu7JbntLWT6hhEutzY+jGWr1nOph2bGOwfZHTRaNdnbN2qU3UMqQQGM7sKeAvwmLu/vNb0CgwiIo0rWuXz54CTUpqXiIhkKJXA4O4/AralMS8RkW5TtN7THat8NrOlZrbWzNZu2bKlU4sVmRayznjatfys1ysNRew9nVrls5kNA9epjkGksyqfnwxBy6NOtZ5p1/KzXq+0pNnJsGh1DCKSkayHbWjX8rNer7QUoZNhJQUGkYJrNuNJq5imXRlfETPUOEXoZFgplcBgZtcAtwBHm9mDZnZ2GvMVkWSljD1uLB+onvGkWe7droyviBlqnCJ0MqyUVqukP3b3F7l7n7sf6u6fSWO+IhIvmrHHqZXxpFlM066Mr4gZapwi9p6ekXUCRKRxcRl7yVD/UM3ezWkW05SWk3bv6nbNNwsj80cKlW4NiSFSQK0OB12E4bhlKrVKEpFErZa/d0sxjbSHAoNIAbWasRex3Fs6R0VJIgWlUVOnn04VJanyWaSgKitnSy2KFBykVSpKko7qhrFv8qKIY/BIMSgwSMcoI0tXtwwZIfmjwCAdo4wsXd0yZITkjwKDdIwysnR1y5ARkj8KDF0k7+X3ysjSpb4I0i4KDF2iCOX3ysjSpb4I0i7qx9AlijLEgdret4+2bfdTPwZpSFHK7+MGE1OG1rrKp52V7hhB/RqkcSpKalCpHN8uNmZcMgO72BheMcyy65eVle9H38+9bC5zL5ubWPafRt1AUcvv814Elvd6mxK1+JI0qSiphujV7MzemTy176lU5rvoxYu48V03pvZc21rzqXZVnuUVe56LwIr0zOFWR1uVYuhUUZICQxVxGUOaZvbM5OmJp2O/ayZjTMrgq2VwwJTvDOOcBedw+Zsvb3ylGpTnDC3PQatSkdIqzVNg6IBl1y9j5W0r2ef76LVeFg4v5N5t97JpxyYOmn0Q2/ZsS3xsYqf0Wi/7fF9dD19JkpRpDMweYPt/b2ef75vynWGsXrK67VfGec7Q8hy0KhXp7kaap+cxtEm0juDTaz89mSnu832suX/NZFn3+J7xzINCKV1AWdl7o+XeSRXQ43vGY4MCgOMdKZ/OcxPWItXbqOmqpKnr7xjG1o/xnu+8h/E94x1ZXrsNzB5gz949DRX9zL1sblPr36kr47y2StJVuOSNipLqsGwZXHklTJTyrvljcNJ7YE5FJmgtL6oQBmYPsG3PtsnMFYLWKkkPjK+l13pZdeqqaZ0J5jVoyfRUqMBgZicBHwd6gX9z9w9Xm77ZwGCVGfzpJ8Lhayomani2Xamvpw8z4+l98ZXb9dIVskh+FKaOwcx6gU8BbwKOAf7YzI5pdb5TlxO+mD8GH5oBF1oQFIzyPwHgmYlnWg4KoLbwItNRGj2fTwDudff7AMzsi8Bi4FcpzBuAQw4JX8wfg52nw+q05lwgBlnVhW9kIwu/sbBt83/0yUe5//H7eWrvU8yaMYsXP+/FvGC/F7Rtee3SLesh7XPzzTdnnYS6pNEq6RDggcj7B8PPypjZUjNba2Zrt2zZ0tACHnoofHHSe5pOZKFlGBQAZs2Y1bZ5P/rko9w9fjdP7Q06Dj619ynu2nIX94zf07ZltkPcetw9fjePPvloxikTaVzHxkpy95XASgjqGJqayZxxeHeaqZJa2l3HMLximIkdU1s+PczDXLbkssLUbcStxwQT7Onfw83n35xNokSalMYdw2bgsMj7Q8PPpKAsrKzpRFv4pD4WnepHkZaiDGIoUo80AsN/AEea2YvNbCZwGvCtFOY76eCDwxe7B9Kc7bTXQw8Ds4Nt2mu9QBAMzllwDkP9Q2zasYnla5a3deC4ap3FipSpFqkznEgtLQcGd98LnAd8D/g18GV3v7PV+UZt3hwGh+9+HPbOTHPW046F/4b6h/j8ks+z9f1b8QudvRfsxS90RheNsmrdqo6Ndjq6aHTyDqVSkTLVPPfgFmlUKkNiuPsN7n6Uux/u7m05EzZvBr9jhKv/8CqG+ofasYhy+3qDCl8vz7T6evqY2VsenJIytrzp6+lj9ZLVrF4SNOs649ozpgyp0enhm0fmj3DOgnOmbMOsM9VGhx3RkBTSTQrd8xme7Zm6ccdGDCsf3yjy0iZm4b11Dpn99Bz49kpYP0Lf8WM899TlbNu7aUqP4lJv2JOPPJlV61a1bRTWVszsmckzE89Mpv2nm37KFWuvKNtO0QrmrAaOy1MPYw2FkU95OkayUqiez41q11hJtQ6cakGk9H5gxhDcOMq2fx9hcBBGR2GkjmNvbP0Yp197eurr1KroKKnV0lgazTRptNNe62XCJ6bFCZnnEV+nKwXrgAJDm7Xj6iMpQ8mDof4hxveMs+vpXbHfl+4I6nkGRbUTsnIo86XHL+3Icx3SVKThtqcLBetAYYbEKKqR+SNsOH8DExdOsOH8DalcdYwuGp1s3ZM3G3dsTAwK8GxFb2VZedz6JNU5LLt+2ZShzD+99tMsu35ZSmvRGWphlD9qDtxZ0zYwtEvS8w3yLlrRGw2aEx5/hRx3Qq68bWXstFfedmU6iewQtTDKHwXrzurawDA2BsPD0NMT/D/WgWe4F6lDVtR+ffsl3jE1ckImBcUJn2hrX4i0qYVR/ihYd1ZXBoaxMVi6FDZuBPfg/6VL2x8cat3WDvUPtdzUtseSd1kzzWb7evq48pTkK/pGTshqxWhFC5rtKGqU5ilYd1ZXBobly2F3Rd3p7t3B5+1U67a2Vjl/LYbx58f/+ZR+FBD0Yl69ZHXVwDOnbw7nLji37OT67Ns+W/XkauSEXHr80sT55LVSXopDwbpzurJVUk9PcKdQySzytLc2qKdFT6v8Qp/yuNKB2QN8/E0fn2ySGpeG6DTtZBfH37X0Wi97L9jb1mWLdLtOtUrq2OiqnTQ4GBQfxX3eTqVMN9oMdtfTu2KftzylM14dSncDI/NHEjP4uDTkod9BXivl1WlKZKquLEoaHYU55cXizJkTfN5ulbe72/Zsi53O8YbrG3Y9vausEjdp2IYsb7mT1qkjw5g0qHR31alxoUSKoisDw8gIrFwJQ0NB8dHQUPC+nh7MaUuqdyh1zLl6ydWxdQZxxveMT2ZcecjUll2/jBmXzMAuNmZcMoNl1y8rVOuRTo8LJVIUXVnHkCf1dOWfe9nc2OKmJKWr7yx7gpY6s1U6d8G5/O7g7xaieEY9nKVoNCRGF6msLO6xHiZ8gqH+IUYXjXLGtWc0VN9QapaaZaY245IZsfUGRapk1jALUjQaEqPL7Nm7Z/J1qTdxqfjnoNkHNTSvwf7BzHuCJlUm7/N9DQ1XnaUiFXtlpdHhx6U7KDB0QFxZdknp876evrrmVcq4ss7UqnVmK0plrjpNVZeHeizJhoqSOiCpbX+j9uvbjytPuXIy48qyqWVSHUOcZotm1JQ0Wypqyx/1Y+givdabSjv+yruOav0ZmtFIRlwaSjs6xHbSOjYzAmZlpX3pahVQcOgQjWg6fakoqQPS6tzleNuaUjZTbHD5my+ffFb03gv2JvZVaKbeQ01Jsy/fz7oeS7KjwNABaXbuqrxaSyvzSCMjTrPeY7pfreahfD/reizJjgJDBySdYAOzBxqeV/RqLc3MI42MOM3K3Ol+tZqHOyZVzk9fLVU+m9k7gYuAlwEnuHtdNcrTrfIZ4svvgYb6MFR2jEuzcjBvFY3T/Rm/6nwncYrSj+GXwBLgRymkpavFjV80Mn+EcxacM+U5CjN7Z07eTZSahcZdraVZ3JK3YoNGrlazLotvh+l+xyTZaqlVkrv/GsAsneaY09Hlb7686SEkBvsHY6/ym8k88jgqaz2trrq19dLootHYOyaV70snpNKPwcxuBt5XrSjJzJYCSwEGBweP3xg3LrY0ZLoXt0D+isDSpH4cUik3YyWZ2Y3AC2O+Wu7u3wynuZkagSFqOtYxtKJaBjHdMw+Vxct0kpsObu5+YrsTIclqFZWk3cmtSMbWj9FjPbH9RFQWL9I8NVfNuTw0W2xEpyqCSwEzLiioLF6kNS0FBjM71cweBF4LXG9m30snWVJSpI5ecf0qTr/2dOxiSz1IJA1M2Gu906qORaQdWgoM7v51dz/U3We5+wvc/Y1pJUwC1Zot5q2ZZrVRZNPuuZsUGCd8QkFBpEUqSsq5pP4FJx95cuZDJlSqdReTZhGY2vmLtI8CQ84ldfS64Z4bclf3UE+mnFYRWN465Il0EwWGAojrNV1v3UMni5tGF41O6cVdKa0reo3jI9I+eh5DQdXT67mTvYJL/SmqjfuU9hX9dG6qK9JOumPIgWau6uspSulUU9doa6SS0p1DtbGeRCSfdMeQsWav6usZ26hTTV3jApDj9Fovq05dpWAgUjB65nPG2jnWT6fGEUoalgKm39hNIu1UlGG3pUXtvKpvpOVOK5XU1SqUs24pJSKNU2DIWDvb49fbcqfRJ8FVBpGTjzx5SgCKymMvbRFJpsCQsXa1xy9l3mdcewYAq5esnmzqWqmRSuq4ILJq3SrOPPbMyYrmSup0JlIsCgwZa0d7/EbvABopzkoKIjfccwOrTl2lTmciXUCtknIgrfb4pb4EcRXOpTuAuOU08iS4akEkj0+BE5HGKTB0ibinuVWKy/yhscdI1goi6nQmUnwqSuoS1UY2LTEstjipWnFWPRXNKi4S6S7qx9AlqvUliGqkD0PSM6XPPPZMbrjnBhUXiXRYbh7tKcWQVMRTqVrT0crnR+96eldiRXOaHeREqpnuzzXPgoqSukRcs9c4SU1H41oyje8Zj512446NuXgwkHS/RlvYSToUGLpEZT3BwOwBZvbOLJumWl1APXUUUTpBpROK9szzbqHA0EWiz23Y+v6tXLX4qrr7RzTTO1knqLRbkZ553k1Ux1BQ9ZS7NtJ0NKmOYmD2APvP3D+x/kInqLRTI31sJD26Y8ihWgPataPcNWlojo+/6eNsOH8DQ/1Dsb/TCSrtpEe4ZqOlwGBm/2Rmd5nZHWb2dTM7MK2ETVf1ZPpplLtWBh+g6tAcOkElC3qEazZa6sdgZn8A3OTue83sHwHc/QO1fqd+DMnqeYZCUp8Fw5i4cKLmMpL6J9Q64dRsUCRbhejH4O7fj7y9FXhHa8mReirbWi13rXbHUeupcQoEIt0vzTqGPwW+k/SlmS01s7VmtnbLli0pLra71PN8hlaLddTSQ0SqqRkYzOxGM/tlzN/iyDTLgb1AYu2nu6909wXuvmDevHnppL4L1ZPpt1ru2s6HA4lI8dUsSnL3E6t9b2ZnAW8BFnkWAy8VVFJ5fb1DV7dSrNPIaKoiMv20Wvl8EvDPwOvcve7yoele+dxs5W/aach7RXIR0ijSSZ2qfG41MNwLzAJKg+rc6u7n1PrddA8M9bQ8mu7yEDxF8qYorZKOSCsh04kqf2trtuWUiLROPZ8zoMrf2hQ8RbKjwJAB9SKuTcFTJDsKDBlQN//aFDxFsqNHe0puqVWSSLlCtEpqlgKDiEjjOhUYVJQkIiJlFBhERKSMAoO0Ra2HDYlIfunRnpKKaEXxQbMPYudTO3lm4hmAyYcNAao8FikA3TEUVJ6uyCufOje+Z3wyKJQ0+oQ5EcmOAkMBteOZz6X5NhNs4oaviKNeyyLFoMBQQGk887lSK8Gm3gxfvZZFikGBoYDaMY5QK8Gmngy/kV7LeSomE5mOFBgKqB3jCLUSbOKGr5jZO5OB2QMND/nRrmIyEamfAkMBtWMcoVaCTdzYT1ctvoqt79/KxIUTbDh/Q92tkdpRTCYijVFz1QKq9/GfjWj1cZ+tPGo0SsNti2RPgaGg0sqIo/ODdINNMwb7B2OfbqeKa5HOUVF4zXLfAAAKBUlEQVRSF2u0Endk/ggbzt/QcPFPmjTctkj2FBi6VFwl7unXns7cy+bmuiJXz6oQyZ6G3e5SwyuGY4tkILgCV2YrUjwadltaUq2yVq18RKSalgKDmf2dmd1hZreb2ffN7OC0EiatqVVZm3Q3ISLS6h3DP7n7K9z9OOA64IIU0iQpiKvEjTIssa5BPY9FpreWAoO774y83Q/ofIWFxCpV4g7MHoj93vHY4iT1PBaRliufzWwUeBewA/if7r4lYbqlwFKAwcHB4zduVFFGp9jFFv85xsSFE2WfJVVaD/UPseH8De1InojUKTeVz2Z2o5n9MuZvMYC7L3f3w4Ax4Lyk+bj7Sndf4O4L5s2bl94aSE1D/UOxn8fVQ6jnsYjUDAzufqK7vzzm75sVk44Bb29PMqUVjXQaO2j2QbHzUM9jkemj1VZJR0beLgbuai050g71dhobWz/Gzqd2Tvn9zN6Z6nksMo20VMdgZl8DjgYmgI3AOe6+udbv1MEtn5LqFwZmD7D1/VszSJGIRHWqjqGlQfTcXUVHXSSpHmHbnm0dTomIZEk9n2VSOx4AJCLFo8AgkzSyqYiAAoNEaGRTEQGNrioiUhi56eAmIiLTiwKDiIiUUWAQEZEyCgwiIlJGgUFERMooMIiISBkFBhERKaPAICIiZRQYZFrQc6xF6tfS6KoiRVB6jvXuZ3YDTD7HGtBwHyIxdMcgXW/5muWTQaFk9zO7Wb5meUYpEsk3BQbpenqOtUhjFBik6+k5EyKNUWCQrqfnTIg0RoFBup6eMyHSGD2PocuNrR9j+ZrlbNqxicH+QUYXjSpDFCmoTj2PQc1Vu5iaaYpIM1IpSjKz95qZm9ncNOYn6VAzTRFpRsuBwcwOA/4AUNu/nFEzTRFpRhp3DB8D3g90vrJCqlIzTRFpRkuBwcwWA5vdfV0d0y41s7VmtnbLli2tLFbqpGaaItKMmpXPZnYj8MKYr5YDHyQoRqrJ3VcCKyFoldRAGqVJpQpmtUoSkUY03VzVzOYDa4BS7eahwEPACe7+SLXfqrmqiEjjct9c1d3XA88vvTezDcACd9+aQrpERCQj6vksIiJlUuvg5u7Dac1LRESyozsGEREpo8AgIiJlFBhERKSMAoOIiJRRYBARkTIKDCIiUkaBIQVj68cYXjFMz8U9DK8YZmz9WNZJEhFpmh7U0yI9DEdEuo3uGFqkh+GISLdRYGiRHoYjIt1GgaFFehiOiHQbBYYW6WE4ItJtFBhaNDJ/hJWnrGSofwjDGOofYuUpK1XxLCKF1fSDelqhB/WIiDSuUw/q0R2DiIiUUWAQEZEyCgwiIlJGgUFERMooMIiISBkFBhERKaPAICIiZVoKDGZ2kZltNrPbw7+T00qYiIhkI407ho+5+3Hh3w0pzK8peiaCiEg6uuJ5DHomgohIetK4YzjPzO4ws6vM7HkpzK9heiaCiEh6agYGM7vRzH4Z87cY+DRwOHAc8DDw0SrzWWpma81s7ZYtW1JbAdAzEURE0lSzKMndT6xnRmb2r8B1VeazElgJwSB69SawHoP9g2zcsTH2cxERaUyrrZJeFHl7KvDL1pLTHD0TQUQkPa1WPl9mZscBDmwA/rzlFDWhVMG8fM1yNu3YxGD/IKOLRlXxLCLSBD2PQUSkIPQ8BhERyYQCg4iIlFFgEBGRMgoMIiJSRoFBRETKZNIqycy2AFN7pDVmLrA1heRkpejph+Kvg9KfvaKvQ6fTP+Tu89q9kEwCQxrMbG0nmm21S9HTD8VfB6U/e0Vfh6KnP4mKkkREpIwCg4iIlClyYFiZdQJaVPT0Q/HXQenPXtHXoejpj1XYOgYREWmPIt8xiIhIGygwiIhImdwHBjM7ycx+Y2b3mtlfx3w/y8y+FH7/MzMb7nwqk9WR/rPMbIuZ3R7+/VkW6UwSPrL1MTOLfdaGBT4Rrt8dZvbKTqexmjrSv9DMdkS2/wWdTmM1ZnaYmf3QzH5lZnea2XtipsntPqgz/XnfB88xs5+b2bpwHS6OmSbX+VDD3D23f0Av8F/AS4CZwDrgmIpplgFXhK9PA76UdbobTP9ZwCezTmuVdfh94JXALxO+Pxn4DmDAa4CfZZ3mBtO/ELgu63RWSf+LgFeGrw8A7o45hnK7D+pMf973gQH7h6/7gJ8Br6mYJrf5UDN/eb9jOAG4193vc/engS8CiyumWQysCl9/FVhkZtbBNFZTT/pzzd1/BGyrMsli4PMeuBU4sOLJfpmqI/255u4Pu/svwtdPAL8GDqmYLLf7oM7051q4XXeFb/vCv8pWO3nOhxqW98BwCPBA5P2DTD2oJqdx973ADmCgI6mrrZ70A7w9LAL4qpkd1pmkpabedcyz14bFBN8xs9/KOjFJwuKJ3ya4Yo0qxD6okn7I+T4ws14zux14DPiBuyfugxzmQw3Le2CYDr4NDLv7K4Af8OxVh3TGLwjGnzkW+BfgGxmnJ5aZ7Q98DTjf3XdmnZ5G1Uh/7veBu+9z9+OAQ4ETzOzlWaepnfIeGDYD0SvoQ8PPYqcxsxlAPzDekdTVVjP97j7u7k+Fb/8NOL5DaUtLPfsot9x9Z6mYwN1vAPrMbG7GySpjZn0EmeqYu18bM0mu90Gt9BdhH5S4+3bgh8BJFV/lOR9qWN4Dw38AR5rZi81sJkGlzrcqpvkWcGb4+h3ATR7WAOVAzfRXlAW/laAMtki+BbwrbBnzGmCHuz+cdaLqZWYvLJUFm9kJBOdEbk7oMG2fAX7t7v+cMFlu90E96S/APphnZgeGr2cDbwDuqpgsz/lQw2ZknYBq3H2vmZ0HfI+ghc9V7n6nmV0CrHX3bxEcdKvN7F6CSsbTsktxuTrT/5dm9lZgL0H6z8oswTHM7BqCViNzzexB4EKCyjfc/QrgBoJWMfcCu4F3Z5PSeHWk/x3AuWa2F9gDnJazE/p3gTOA9WEZN8AHgUEoxD6oJ/153wcvAlaZWS9B0Pqyu19XlHyoGRoSQ0REyuS9KElERDpMgUFERMooMIiISBkFBhERKaPAICLSZrUGc6yYdsjM1oSjIdxsZod2Io1RCgwiIu33OaZ2ikvyEYKxr14BXAL8Q7sSlUSBQUSkzeIGczSzw83su2Z2m5n92MxeGn51DHBT+PqHZDDwpgKDiEg2VgL/292PB94HXB5+vg5YEr4+FTjAzDo6IF+uez6LiHSjcFDB3wG+Ehmde1b4//uAT5rZWcCPCMZh2tfJ9CkwiIh0Xg+wPRyxtYy7P0R4xxAGkLeHg/d1NHEiItJB4dDj95vZO2Hy8azHhq/nmlkpb/4b4KpOp0+BQUSkzcLBHG8BjjazB83sbGAEONvM1gF38mwl80LgN2Z2N/ACYLTj6dUgeiIiEqU7BhERKaPAICIiZRQYRESkjAKDiIiUUWAQEZEyCgwiIlJGgUFERMr8f6DGBQdzv/FTAAAAAElFTkSuQmCC\n",
+      "text/plain": [
+       "<Figure size 432x288 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "xmin = min(int(np.min(regressor.predict(x_val))), int(np.min(regressor.predict(x_train))))\n",
+    "xmax = max(int(np.max(regressor.predict(x_val))), int(np.max(regressor.predict(x_train))))\n",
+    "\n",
+    "# Visualize the results with a residual plot\n",
+    "plt.scatter(regressor.predict(x_train), regressor.predict(x_train) - y_train, color='blue')\n",
+    "plt.scatter(regressor.predict(x_val), regressor.predict(x_val) - y_val, color='green')\n",
+    "plt.hlines(y=0, xmin=xmin, xmax=xmax)\n",
+    "plt.title(\"Residual plot using training (blue) and validation (green) data\")\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# We can now use our regressor on the test data for submission\n",
+    "test_preds = regressor.predict(test_data)\n",
+    "\n",
+    "# Generate pickle files with predictions\n",
+    "# this is the file you have to compressed and upload to CodaLab\n",
+    "with open(\"output/(predictions_class.pkl\", 'wb') as outfile:\n",
+    "    pickle.dump(test_preds, outfile, protocol=2)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
